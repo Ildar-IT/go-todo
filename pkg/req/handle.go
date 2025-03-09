@@ -2,7 +2,7 @@ package req
 
 import (
 	"net/http"
-	"usr/pkg/res"
+	"todo/pkg/res"
 )
 
 func HandleBody[T any](w http.ResponseWriter, r *http.Request) (*T, error) {
