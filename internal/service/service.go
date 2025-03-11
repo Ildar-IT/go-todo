@@ -14,8 +14,8 @@ type Todo interface {
 }
 
 type User interface {
-	Login(user *entity.UserLoginReq) (int, error)
-	Register(user *entity.UserRegisterReq) (entity.UserRegisterRes, error)
+	Login(user *entity.UserLoginReq) (entity.UserLoginRes, error, int)
+	Register(user *entity.UserRegisterReq) (entity.UserRegisterRes, error, int)
 }
 
 type Service struct {
@@ -26,6 +26,6 @@ type Service struct {
 func NewService(log *slog.Logger, repo *repository.Repository, jwt *jwtUtils.Jwt, salt string) *Service {
 	return &Service{
 		Todo: todoService.NewTodoService(log, repo.Todo),
-		User: userService.NewUserService(log, repo.User, jwt, salt),
+		User: userService.NewUserService(log, repo.User, repo.Role, jwt, salt),
 	}
 }

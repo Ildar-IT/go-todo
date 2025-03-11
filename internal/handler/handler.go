@@ -21,10 +21,11 @@ func NewHandler(log *slog.Logger, services *service.Service) *Handler {
 }
 
 func (h *Handler) InitRoutes() *http.ServeMux {
-	// init router
+
 	router := http.NewServeMux()
 	router.HandleFunc("POST /todo", h.todoHandler.CreateTodo())
-	//router.HandleFunc("POST /user/login", h.userHandler.Login())
+
+	router.HandleFunc("POST /login", h.userHandler.Login())
 	router.HandleFunc("POST /register", h.userHandler.Register())
 	return router
 }

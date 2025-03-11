@@ -11,8 +11,10 @@ type Storage struct {
 }
 
 const (
-	TodosTable = "tasks"
-	UsersTable = "users"
+	TodosTable     = "tasks"
+	UsersTable     = "users"
+	UserRolesTable = "user_roles"
+	RolesTable     = "roles"
 )
 
 func New(connecStr string) (*Storage, error) {

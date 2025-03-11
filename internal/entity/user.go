@@ -16,6 +16,10 @@ type UserLoginReq struct {
 	Password string `json:"password"`
 }
 
+type UserLoginRes struct {
+	Access  string `json:"access"`
+	Refresh string `json:"refresh"`
+}
 type UserRegisterReq struct {
 	Username string `json:"name"`
 	Email    string `json:"email"`
@@ -24,5 +28,5 @@ type UserRegisterReq struct {
 
 type UserRegisterRes struct {
 	Access  string `json:"access"`
-	Refresh string `json:"resfresh"`
+	Refresh string `json:"refresh"`
 }
