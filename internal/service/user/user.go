@@ -2,6 +2,7 @@ package userService
 
 import (
 	"crypto/sha1"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -41,10 +42,10 @@ func (s *UserService) Login(user *entity.UserLoginReq) (entity.UserLoginRes, err
 	res, err := s.repo.GetUserByEmail(user.Email)
 	if err != nil {
 		log.Error("Get user by email", "error", err.Error())
+		if errors.Is(err, sql.ErrNoRows) {
+			return entity.UserLoginRes{}, errors.New("user with email not exists"), http.StatusBadRequest
+		}
 		return entity.UserLoginRes{}, errors.New("Login error"), http.StatusInternalServerError
-	}
-	if res.Id == 0 {
-		return entity.UserLoginRes{}, errors.New("user with email not exists"), http.StatusBadRequest
 	}
 
 	if res.Password_hash != generatePasswordHash(user.Password, s.salt) {
@@ -52,7 +53,6 @@ func (s *UserService) Login(user *entity.UserLoginReq) (entity.UserLoginRes, err
 	}
 
 	role, err := s.repoRole.GetUserRole(res.Id)
-	log.Info("LOGIN USER ROLE", "roel", role.Name)
 	if err != nil {
 		log.Error("Get User role", "error", err.Error())
 		return entity.UserLoginRes{}, errors.New("Login error"), http.StatusInternalServerError
@@ -95,7 +95,6 @@ func (s *UserService) Register(user *entity.UserRegisterReq) (entity.UserRegiste
 		return entity.UserRegisterRes{}, errors.New("user register error"), http.StatusInternalServerError
 	}
 	role, err := s.repoRole.SetUserRole(userId)
-	log.Info("register USER ROLE", role.Name)
 	if err != nil {
 		log.Error("Repo user set roel error", "error", err.Error())
 		return entity.UserRegisterRes{}, errors.New("user register error"), http.StatusInternalServerError

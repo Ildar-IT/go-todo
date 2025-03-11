@@ -16,7 +16,7 @@ func NewRoleRepository(db *sql.DB) *RoleRepository {
 }
 func (r *RoleRepository) GetUserRole(userId int) (*entity.Role, error) {
 	var role entity.Role
-	query := fmt.Sprintf("SELECT r.id, r.name FROM %s ur JOIN %s r ON ur.user_id = r.id WHERE ur.user_id = $1", pg.UserRolesTable, pg.RolesTable)
+	query := fmt.Sprintf("SELECT r.id, r.name FROM %s ur JOIN %s r ON ur.role_id = r.id WHERE ur.user_id = $1", pg.UserRolesTable, pg.RolesTable)
 	row := r.db.QueryRow(query, userId)
 	err := row.Scan(&role.Id, &role.Name)
 	return &role, err
@@ -33,8 +33,7 @@ func (r *RoleRepository) SetUserRole(userId int) (*entity.Role, error) {
 	}
 	//	var res int
 	query = fmt.Sprintf("INSERT INTO %s (user_id, role_id) VALUES ($1, $2)", pg.UserRolesTable)
-	row = r.db.QueryRow(query, userId, role.Id)
-	err = row.Scan()
+	_, err = r.db.Exec(query, userId, role.Id)
 	if err != nil {
 		return &role, err
 	}

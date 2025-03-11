@@ -28,5 +28,6 @@ func (r *UserRepository) GetUserByEmail(email string) (*entity.User, error) {
 	query := fmt.Sprintf("SELECT id, username, email, password_hash, created_at, updated_at FROM %s WHERE email = $1", pg.UsersTable)
 	row := r.db.QueryRow(query, email)
 	err := row.Scan(&result.Id, &result.Username, &result.Email, &result.Password_hash, &result.Created_at, &result.Updated_at)
+
 	return &result, err
 }

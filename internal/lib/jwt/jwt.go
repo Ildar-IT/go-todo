@@ -8,12 +8,20 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const (
+	RefreshTokenType = "qazwsxedc"
+	AccessTokenType  = "rtyhgfvnb"
+)
+
+type tokenClaims struct {
+	jwt.Claims
+}
+
 type Jwt struct {
 	cfg *config.JwtConfig
 }
 
 func New(cfg *config.JwtConfig) *Jwt {
-
 	return &Jwt{cfg: cfg}
 }
 
@@ -39,40 +47,45 @@ func (j *Jwt) GenerateRefreshToken(userId int, role string) (string, error) {
 	return token.SignedString([]byte(j.cfg.RefreshSecret))
 }
 
-func ValidateAccessToken(secret string, tokenStr string) error {
+func (j *Jwt) ValidateAccessToken(tokenStr string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("Invalid signing method")
+			return nil, errors.New("invalid signing method")
 		}
-		return []byte(secret), nil
+		return []byte(j.cfg.AccessSecret), nil
 	})
 	if err != nil {
-		return err
+		return jwt.MapClaims{}, err
 	}
 	if !token.Valid {
-		return errors.New("Token not valid")
+		return jwt.MapClaims{}, errors.New("token not valid")
 	}
-	return nil
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return claims, errors.New("not get access token claims")
+	}
+	return claims, nil
 }
 
-func ValidateRefreshToken(secret string, tokenStr string) (int, error) {
+func (j *Jwt) ValidateRefreshToken(tokenStr string) (int, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("Invalid signing method")
+			return nil, errors.New("invalid signing method")
 		}
-		return []byte(secret), nil
+		return []byte(j.cfg.RefreshSecret), nil
 	})
 	if err != nil {
 		return 0, err
 	}
 
 	if !token.Valid {
-		return 0, errors.New("Token not valid")
+		return 0, errors.New("token not valid")
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return 0, errors.New("Not get refresh token claims")
+		return 0, errors.New("not get refresh token claims")
 	}
 
 	return claims["user_id"].(int), nil

@@ -31,7 +31,7 @@ func main() {
 
 	repo := repository.NewRepository(storage.DB)
 	service := service.NewService(logger, repo, jwt, cfg.Salt)
-	handler := handler.NewHandler(logger, service)
+	handler := handler.NewHandler(logger, service, jwt)
 
 	router := handler.InitRoutes()
 	server := http.Server{
