@@ -31,7 +31,8 @@ func (h *Handler) InitRoutes() *http.ServeMux {
 	router := http.NewServeMux()
 	router.HandleFunc("POST /todo", h.todoHandler.CreateTodo())
 
-	router.HandleFunc("POST /login", h.userHandler.Login())
-	router.HandleFunc("POST /register", middleware.AuthMiddleware(h.userHandler.Register(), h.jwt, h.log))
+	router.HandleFunc("POST /auth/login", h.userHandler.Login())
+	router.HandleFunc("POST /auth/register", middleware.AuthMiddleware(h.userHandler.Register(), h.jwt, h.log))
+	router.HandleFunc("POST /auth/update", middleware.RefreshTokenMiddleware(h.userHandler.UpdateTokens(), h.jwt, h.log))
 	return router
 }

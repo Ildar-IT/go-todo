@@ -13,8 +13,17 @@ const (
 	AccessTokenType  = "rtyhgfvnb"
 )
 
-type tokenClaims struct {
-	jwt.Claims
+type AccessClaims struct {
+	UserId int    `json:"user_id"`
+	Role   string `json:"role"`
+	Exp    int64  `json:"exp"`
+	jwt.RegisteredClaims
+}
+type RefreshClaims struct {
+	UserId int    `json:"user_id"`
+	Role   string `json:"role"`
+	Exp    int64  `json:"exp"`
+	jwt.RegisteredClaims
 }
 
 type Jwt struct {
@@ -26,68 +35,73 @@ func New(cfg *config.JwtConfig) *Jwt {
 }
 
 func (j *Jwt) GenerateAccessToken(userId int, role string) (string, error) {
-	claims := jwt.MapClaims{
-		"user_id": userId,
-		"role":    role,
-		"exp":     time.Now().Add(time.Minute * time.Duration(j.cfg.AccessTTL)).Unix(),
+	// claims := jwt.MapClaims{
+	// 	"user_id": userId,
+	// 	"role":    role,
+	// 	"exp":     time.Now().Add(time.Minute * time.Duration(j.cfg.AccessTTL)).Unix(),
+	// }
+	claims := AccessClaims{
+		UserId: userId,
+		Role:   role,
+		Exp:    time.Now().Add(time.Minute * time.Duration(j.cfg.AccessTTL)).Unix(),
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
 
 	return token.SignedString([]byte(j.cfg.AccessSecret))
 }
 
 func (j *Jwt) GenerateRefreshToken(userId int, role string) (string, error) {
-	claims := jwt.MapClaims{
-		"user_id": userId,
-		"role":    role,
-		"exp":     time.Now().Add(time.Hour * time.Duration(j.cfg.RefreshTTL)).Unix(),
+	claims := RefreshClaims{
+		UserId: userId,
+		Role:   role,
+		Exp:    time.Now().Add(time.Minute * time.Duration(j.cfg.RefreshTTL)).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString([]byte(j.cfg.RefreshSecret))
 }
 
-func (j *Jwt) ValidateAccessToken(tokenStr string) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+func (j *Jwt) ValidateAccessToken(tokenStr string) (*AccessClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &AccessClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
 		return []byte(j.cfg.AccessSecret), nil
 	})
 	if err != nil {
-		return jwt.MapClaims{}, err
+		return &AccessClaims{}, err
 	}
 	if !token.Valid {
-		return jwt.MapClaims{}, errors.New("token not valid")
+		return &AccessClaims{}, errors.New("token not valid")
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(*AccessClaims)
+
 	if !ok {
 		return claims, errors.New("not get access token claims")
 	}
 	return claims, nil
 }
 
-func (j *Jwt) ValidateRefreshToken(tokenStr string) (int, error) {
-	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+func (j *Jwt) ValidateRefreshToken(tokenStr string) (*RefreshClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &RefreshClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
 		return []byte(j.cfg.RefreshSecret), nil
 	})
 	if err != nil {
-		return 0, err
+		return &RefreshClaims{}, err
 	}
-
 	if !token.Valid {
-		return 0, errors.New("token not valid")
+		return &RefreshClaims{}, errors.New("token not valid")
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(*RefreshClaims)
+
 	if !ok {
-		return 0, errors.New("not get refresh token claims")
+		return claims, errors.New("not get access token claims")
 	}
-
-	return claims["user_id"].(int), nil
+	return claims, nil
 
 }

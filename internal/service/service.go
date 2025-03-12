@@ -14,8 +14,9 @@ type Todo interface {
 }
 
 type User interface {
-	Login(user *entity.UserLoginReq) (entity.UserLoginRes, error, int)
-	Register(user *entity.UserRegisterReq) (entity.UserRegisterRes, error, int)
+	Login(user *entity.UserLoginReq) (entity.TokensRes, error, int)
+	Register(user *entity.UserRegisterReq) (entity.TokensRes, error, int)
+	GenerateTokens(userId int, role string) (entity.TokensRes, error, int)
 }
 
 type Service struct {

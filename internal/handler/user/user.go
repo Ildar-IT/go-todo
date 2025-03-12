@@ -1,11 +1,11 @@
 package userHandler
 
 import (
-	"encoding/json"
 	"log/slog"
 	"net/http"
 	"todo/internal/entity"
 	"todo/internal/lib/handlers"
+	jwtUtils "todo/internal/lib/jwt"
 	"todo/internal/service"
 )
 
@@ -48,11 +48,7 @@ func (h *UserHandler) Register() http.HandlerFunc {
 			slog.String("op", op),
 		)
 		var user entity.UserRegisterReq
-		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-
-			return
-		}
+		err := handlers.DecodeJSONRequest(r, &user, log)
 
 		resp, err, status := h.services.User.Register(&user)
 
@@ -66,11 +62,25 @@ func (h *UserHandler) Register() http.HandlerFunc {
 	}
 }
 
-// func (h *UserHandler) UpdateTokens() http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		const op = "handler.user.register"
-// 		log := h.log.With(
-// 			slog.String("op", op),
-// 		)
-// 	}
-// }
+func (h *UserHandler) UpdateTokens() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		const op = "handler.user.updateTokens"
+		log := h.log.With(
+			slog.String("op", op),
+		)
+
+		claims := r.Context().Value("claims").(*jwtUtils.RefreshClaims)
+
+		if claims.UserId == 0 || claims.Role == "" {
+			handlers.SendJSONResponse(w, http.StatusBadRequest, handlers.HTTPErrorRes{Message: "Cannot get payload"}, log)
+		}
+		resp, err, status := h.services.User.GenerateTokens(claims.UserId, claims.Role)
+
+		if err != nil {
+			handlers.SendJSONResponse(w, status, handlers.HTTPErrorRes{Message: err.Error()}, log)
+			return
+		}
+		log.Info("Create user:", "tokens", resp)
+		handlers.SendJSONResponse(w, http.StatusOK, resp, log)
+	}
+}

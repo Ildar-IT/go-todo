@@ -33,7 +33,7 @@ func NewUserService(log *slog.Logger, repo repository.User, repoRole repository.
 	}
 }
 
-func (s *UserService) Login(user *entity.UserLoginReq) (entity.UserLoginRes, error, int) {
+func (s *UserService) Login(user *entity.UserLoginReq) (entity.TokensRes, error, int) {
 	const op = "services.user.login"
 	log := s.log.With(
 		slog.String("op", op),
@@ -43,38 +43,24 @@ func (s *UserService) Login(user *entity.UserLoginReq) (entity.UserLoginRes, err
 	if err != nil {
 		log.Error("Get user by email", "error", err.Error())
 		if errors.Is(err, sql.ErrNoRows) {
-			return entity.UserLoginRes{}, errors.New("user with email not exists"), http.StatusBadRequest
+			return entity.TokensRes{}, errors.New("user with email not exists"), http.StatusBadRequest
 		}
-		return entity.UserLoginRes{}, errors.New("Login error"), http.StatusInternalServerError
+		return entity.TokensRes{}, errors.New("Login error"), http.StatusInternalServerError
 	}
 
 	if res.Password_hash != generatePasswordHash(user.Password, s.salt) {
-		return entity.UserLoginRes{}, errors.New("not valid login or password"), http.StatusBadRequest
+		return entity.TokensRes{}, errors.New("not valid login or password"), http.StatusBadRequest
 	}
 
 	role, err := s.repoRole.GetUserRole(res.Id)
 	if err != nil {
 		log.Error("Get User role", "error", err.Error())
-		return entity.UserLoginRes{}, errors.New("Login error"), http.StatusInternalServerError
+		return entity.TokensRes{}, errors.New("Login error"), http.StatusInternalServerError
 	}
-
-	access, err := s.jwt.GenerateAccessToken(res.Id, role.Name)
-	if err != nil {
-		log.Error("Generate access token error", "error", err.Error())
-		return entity.UserLoginRes{}, errors.New("create tokens error"), http.StatusInternalServerError
-	}
-	refresh, err := s.jwt.GenerateRefreshToken(res.Id, role.Name)
-	if err != nil {
-		log.Error("Generate refresh token error", "error", err.Error())
-		return entity.UserLoginRes{}, errors.New("create tokens error"), http.StatusInternalServerError
-	}
-	return entity.UserLoginRes{
-		Access:  access,
-		Refresh: refresh,
-	}, nil, 0
+	return s.GenerateTokens(res.Id, role.Name)
 }
 
-func (s *UserService) Register(user *entity.UserRegisterReq) (entity.UserRegisterRes, error, int) {
+func (s *UserService) Register(user *entity.UserRegisterReq) (entity.TokensRes, error, int) {
 	const op = "services.user.register"
 	log := s.log.With(
 		slog.String("op", op),
@@ -90,26 +76,35 @@ func (s *UserService) Register(user *entity.UserRegisterReq) (entity.UserRegiste
 		log.Error("Repo user create error", "error", err.Error())
 		pqErr := err.(*pq.Error).Code
 		if pqErr == "23505" {
-			return entity.UserRegisterRes{}, errors.New("user already exists"), http.StatusBadRequest
+			return entity.TokensRes{}, errors.New("user already exists"), http.StatusBadRequest
 		}
-		return entity.UserRegisterRes{}, errors.New("user register error"), http.StatusInternalServerError
+		return entity.TokensRes{}, errors.New("user register error"), http.StatusInternalServerError
 	}
 	role, err := s.repoRole.SetUserRole(userId)
 	if err != nil {
 		log.Error("Repo user set roel error", "error", err.Error())
-		return entity.UserRegisterRes{}, errors.New("user register error"), http.StatusInternalServerError
+		return entity.TokensRes{}, errors.New("user register error"), http.StatusInternalServerError
 	}
-	access, err := s.jwt.GenerateAccessToken(userId, role.Name)
+
+	return s.GenerateTokens(userId, role.Name)
+}
+
+func (s *UserService) GenerateTokens(userId int, role string) (entity.TokensRes, error, int) {
+	const op = "services.user.GenerateTokens"
+	log := s.log.With(
+		slog.String("op", op),
+	)
+	access, err := s.jwt.GenerateAccessToken(userId, role)
 	if err != nil {
 		log.Error("Generate access token error", "error", err.Error())
-		return entity.UserRegisterRes{}, errors.New("create tokens error"), http.StatusInternalServerError
+		return entity.TokensRes{}, errors.New("create tokens error"), http.StatusInternalServerError
 	}
-	refresh, err := s.jwt.GenerateRefreshToken(userId, role.Name)
+	refresh, err := s.jwt.GenerateRefreshToken(userId, role)
 	if err != nil {
 		log.Error("Generate refresh token error", "error", err.Error())
-		return entity.UserRegisterRes{}, errors.New("create tokens error"), http.StatusInternalServerError
+		return entity.TokensRes{}, errors.New("create tokens error"), http.StatusInternalServerError
 	}
-	return entity.UserRegisterRes{
+	return entity.TokensRes{
 		Access:  access,
 		Refresh: refresh,
 	}, nil, 0
