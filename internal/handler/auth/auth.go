@@ -1,4 +1,4 @@
-package userHandler
+package authHandler
 
 import (
 	"log/slog"
@@ -9,28 +9,27 @@ import (
 	"todo/internal/service"
 )
 
-type UserHandler struct {
+type AuthHandler struct {
 	log      *slog.Logger
 	services *service.Service
 }
 
-func NewUserHandler(log *slog.Logger, services *service.Service) *UserHandler {
-	return &UserHandler{log: log, services: services}
+func NewAuthHandler(log *slog.Logger, services *service.Service) *AuthHandler {
+	return &AuthHandler{log: log, services: services}
 }
 
-func (h *UserHandler) Login() http.HandlerFunc {
+func (h *AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.user.login"
 		log := h.log.With(
 			slog.String("op", op),
 		)
 		var user entity.UserLoginReq
-		err := handlers.DecodeJSONRequest(r, &user, log)
-		if err != nil {
-			handlers.SendJSONResponse(w, http.StatusBadRequest, handlers.HTTPErrorRes{Message: err.Error()}, log)
+		if err := handlers.DecodeJSONRequest(w, r, &user, log); err != nil {
+			return
 		}
 
-		resp, err, status := h.services.User.Login(&user)
+		resp, err, status := h.services.Auth.Login(&user)
 
 		if err != nil {
 			handlers.SendJSONResponse(w, status, handlers.HTTPErrorRes{Message: err.Error()}, log)
@@ -41,16 +40,17 @@ func (h *UserHandler) Login() http.HandlerFunc {
 	}
 }
 
-func (h *UserHandler) Register() http.HandlerFunc {
+func (h *AuthHandler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.user.register"
 		log := h.log.With(
 			slog.String("op", op),
 		)
 		var user entity.UserRegisterReq
-		err := handlers.DecodeJSONRequest(r, &user, log)
-
-		resp, err, status := h.services.User.Register(&user)
+		if err := handlers.DecodeJSONRequest(w, r, &user, log); err != nil {
+			return
+		}
+		resp, err, status := h.services.Auth.Register(&user)
 
 		if err != nil {
 			handlers.SendJSONResponse(w, status, handlers.HTTPErrorRes{Message: err.Error()}, log)
@@ -62,7 +62,7 @@ func (h *UserHandler) Register() http.HandlerFunc {
 	}
 }
 
-func (h *UserHandler) UpdateTokens() http.HandlerFunc {
+func (h *AuthHandler) UpdateAccessToken() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.user.updateTokens"
 		log := h.log.With(
@@ -70,17 +70,13 @@ func (h *UserHandler) UpdateTokens() http.HandlerFunc {
 		)
 
 		claims := r.Context().Value("claims").(*jwtUtils.RefreshClaims)
-
-		if claims.UserId == 0 || claims.Role == "" {
-			handlers.SendJSONResponse(w, http.StatusBadRequest, handlers.HTTPErrorRes{Message: "Cannot get payload"}, log)
-		}
-		resp, err, status := h.services.User.GenerateTokens(claims.UserId, claims.Role)
+		token, err, status := h.services.Auth.GenerateAccessToken(claims.UserId, claims.Role)
 
 		if err != nil {
 			handlers.SendJSONResponse(w, status, handlers.HTTPErrorRes{Message: err.Error()}, log)
 			return
 		}
-		log.Info("Create user:", "tokens", resp)
-		handlers.SendJSONResponse(w, http.StatusOK, resp, log)
+		log.Info("Update user access token", "token", token)
+		handlers.SendJSONResponse(w, http.StatusOK, entity.TokenAccessRes{Access: token}, log)
 	}
 }

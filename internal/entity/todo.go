@@ -13,8 +13,30 @@ type Todo struct {
 }
 
 type TodoCreateReq struct {
-	User_id     int    `json:"user_id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
-	Completed   bool   `json:"status"`
+	Completed   bool   `json:"completed"`
+}
+type TodoCreateRes struct {
+	Id int `json:"id"`
+}
+
+type TodoGetRes struct {
+	Id          int    `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Completed   bool   `json:"completed"`
+}
+type TodoUpdateReq struct {
+	UserId      int    `json:"user_id"`
+	Id          int    `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Completed   bool   `json:"completed"`
+}
+type TodoUpdateRes struct {
+	Id          int    `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Completed   bool   `json:"completed"`
 }

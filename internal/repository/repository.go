@@ -10,6 +10,8 @@ import (
 
 type Todo interface {
 	Create(todo *entity.Todo) (int, error)
+	GetTodoById(todoId int, userId int) (*entity.TodoGetRes, error)
+	UpdateTodo(todo *entity.TodoUpdateReq) (*entity.TodoUpdateRes, error)
 }
 
 type User interface {

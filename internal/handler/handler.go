@@ -3,8 +3,8 @@ package handler
 import (
 	"log/slog"
 	"net/http"
+	authHandler "todo/internal/handler/auth"
 	todoHandler "todo/internal/handler/todo"
-	userHandler "todo/internal/handler/user"
 	jwtUtils "todo/internal/lib/jwt"
 	"todo/internal/middleware"
 	"todo/internal/service"
@@ -12,7 +12,7 @@ import (
 
 type Handler struct {
 	todoHandler *todoHandler.TodoHandler
-	userHandler *userHandler.UserHandler
+	authHandler *authHandler.AuthHandler
 	jwt         *jwtUtils.Jwt
 	log         *slog.Logger
 }
@@ -20,7 +20,7 @@ type Handler struct {
 func NewHandler(log *slog.Logger, services *service.Service, jwt *jwtUtils.Jwt) *Handler {
 	return &Handler{
 		todoHandler: todoHandler.NewTodoHandler(log, services),
-		userHandler: userHandler.NewUserHandler(log, services),
+		authHandler: authHandler.NewAuthHandler(log, services),
 		jwt:         jwt,
 		log:         log,
 	}
@@ -29,10 +29,12 @@ func NewHandler(log *slog.Logger, services *service.Service, jwt *jwtUtils.Jwt) 
 func (h *Handler) InitRoutes() *http.ServeMux {
 
 	router := http.NewServeMux()
-	router.HandleFunc("POST /todo", h.todoHandler.CreateTodo())
+	router.HandleFunc("POST /todo", middleware.AuthMiddleware(h.todoHandler.CreateTodo(), h.jwt, h.log))
+	router.HandleFunc("GET /todo", middleware.AuthMiddleware(h.todoHandler.GetTodo(), h.jwt, h.log))
+	router.HandleFunc("PATCH /todo", middleware.AuthMiddleware(h.todoHandler.UpdateTodo(), h.jwt, h.log))
 
-	router.HandleFunc("POST /auth/login", h.userHandler.Login())
-	router.HandleFunc("POST /auth/register", middleware.AuthMiddleware(h.userHandler.Register(), h.jwt, h.log))
-	router.HandleFunc("POST /auth/update", middleware.RefreshTokenMiddleware(h.userHandler.UpdateTokens(), h.jwt, h.log))
+	router.HandleFunc("POST /auth/login", h.authHandler.Login())
+	router.HandleFunc("POST /auth/register", h.authHandler.Register())
+	router.HandleFunc("POST /auth/access", middleware.RefreshTokenMiddleware(h.authHandler.UpdateAccessToken(), h.jwt, h.log))
 	return router
 }

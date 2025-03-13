@@ -26,3 +26,6 @@ type TokensRes struct {
 	Access  string `json:"access"`
 	Refresh string `json:"refresh"`
 }
+type TokenAccessRes struct {
+	Access string `json:"access"`
+}

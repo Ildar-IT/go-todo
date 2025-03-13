@@ -18,17 +18,17 @@ func AuthMiddleware(next http.HandlerFunc, jwt *jwtUtils.Jwt, logger *slog.Logge
 		token := r.Header.Get("Authorization")
 		authParts := strings.Split(token, " ")
 		if len(authParts) != 2 || authParts[0] != "Bearer" {
-			handlers.SendJSONResponse(w, http.StatusUnauthorized, handlers.HTTPErrorRes{Message: "invalid auth header"}, log)
+			handlers.SendJSONResponse(w, http.StatusUnauthorized, handlers.HTTPErrorRes{Message: "invalid authorization header"}, log)
 			return
 		}
 		if len(authParts[1]) == 0 {
-			handlers.SendJSONResponse(w, http.StatusUnauthorized, handlers.HTTPErrorRes{Message: "invalid auth header"}, log)
+			handlers.SendJSONResponse(w, http.StatusUnauthorized, handlers.HTTPErrorRes{Message: "invalid authorization header"}, log)
 			return
 		}
 		claims, err := jwt.ValidateAccessToken(authParts[1])
 
 		if err != nil {
-			log.Error(err.Error())
+			log.Error("Token not valid", "error", err.Error())
 			handlers.SendJSONResponse(w, http.StatusUnauthorized, handlers.HTTPErrorRes{Message: "Not valid token"}, log)
 			return
 		}
@@ -45,11 +45,11 @@ func RefreshTokenMiddleware(next http.HandlerFunc, jwt *jwtUtils.Jwt, logger *sl
 		token := r.Header.Get("Authorization")
 		authParts := strings.Split(token, " ")
 		if len(authParts) != 2 || authParts[0] != "Bearer" {
-			handlers.SendJSONResponse(w, http.StatusUnauthorized, handlers.HTTPErrorRes{Message: "invalid auth header"}, log)
+			handlers.SendJSONResponse(w, http.StatusUnauthorized, handlers.HTTPErrorRes{Message: "invalid authorization header"}, log)
 			return
 		}
 		if len(authParts[1]) == 0 {
-			handlers.SendJSONResponse(w, http.StatusUnauthorized, handlers.HTTPErrorRes{Message: "invalid auth header"}, log)
+			handlers.SendJSONResponse(w, http.StatusUnauthorized, handlers.HTTPErrorRes{Message: "invalid authorization header"}, log)
 			return
 		}
 		claims, err := jwt.ValidateRefreshToken(authParts[1])
