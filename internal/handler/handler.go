@@ -32,6 +32,9 @@ func (h *Handler) InitRoutes() *http.ServeMux {
 	router.HandleFunc("POST /todo", middleware.AuthMiddleware(h.todoHandler.CreateTodo(), h.jwt, h.log))
 	router.HandleFunc("GET /todo", middleware.AuthMiddleware(h.todoHandler.GetTodo(), h.jwt, h.log))
 	router.HandleFunc("PATCH /todo", middleware.AuthMiddleware(h.todoHandler.UpdateTodo(), h.jwt, h.log))
+	router.HandleFunc("DELETE /todo", middleware.AuthMiddleware(h.todoHandler.DeleteTodo(), h.jwt, h.log))
+
+	router.HandleFunc("GET /todos", middleware.AuthMiddleware(h.todoHandler.GetTodos(), h.jwt, h.log))
 
 	router.HandleFunc("POST /auth/login", h.authHandler.Login())
 	router.HandleFunc("POST /auth/register", h.authHandler.Register())

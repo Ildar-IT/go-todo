@@ -12,6 +12,8 @@ type Todo interface {
 	Create(todo *entity.Todo) (int, error)
 	GetTodoById(todoId int, userId int) (*entity.TodoGetRes, error)
 	UpdateTodo(todo *entity.TodoUpdateReq) (*entity.TodoUpdateRes, error)
+	GetTodos(userId int) ([]entity.TodoGetRes, error)
+	DeleteTodo(todoId int, userId int) error
 }
 
 type User interface {

@@ -13,6 +13,8 @@ type Todo interface {
 	CreateTodo(todo *entity.Todo) (int, error, int)
 	GetTodo(todoId int, userId int) (*entity.TodoGetRes, error, int)
 	UpdateTodo(todo *entity.TodoUpdateReq) (*entity.TodoUpdateRes, error, int)
+	GetTodos(userId int) ([]entity.TodoGetRes, error, int)
+	DeleteTodo(todoId int, userId int) (error, int)
 }
 
 type Auth interface {

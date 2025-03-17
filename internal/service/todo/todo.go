@@ -52,6 +52,19 @@ func (s *TodoService) GetTodo(todoId int, userId int) (*entity.TodoGetRes, error
 	}
 	return todo, nil, http.StatusOK
 }
+func (s *TodoService) GetTodos(userId int) ([]entity.TodoGetRes, error, int) {
+	const op = "services.todo.GetTodos"
+	log := s.log.With(
+		slog.String("op", op),
+	)
+
+	todo, err := s.repo.GetTodos(userId)
+	if err != nil {
+		log.Error("Get todos error", "error", err.Error())
+		return nil, errors.New("get todo error"), http.StatusInternalServerError
+	}
+	return todo, nil, http.StatusOK
+}
 
 func (s *TodoService) UpdateTodo(todo *entity.TodoUpdateReq) (*entity.TodoUpdateRes, error, int) {
 	const op = "services.todo.UpdateTodo"
@@ -62,7 +75,27 @@ func (s *TodoService) UpdateTodo(todo *entity.TodoUpdateReq) (*entity.TodoUpdate
 	todoRes, err := s.repo.UpdateTodo(todo)
 	if err != nil {
 		log.Error("Update todo error", "error", err.Error())
+		if errors.Is(err, sql.ErrNoRows) {
+			return todoRes, errors.New("cannot find this task"), http.StatusBadRequest
+		}
 		return todoRes, errors.New("update todo error"), http.StatusInternalServerError
 	}
 	return todoRes, nil, http.StatusOK
+}
+
+func (s *TodoService) DeleteTodo(todoId int, userId int) (error, int) {
+	const op = "services.todo.DeleteTodo"
+	log := s.log.With(
+		slog.String("op", op),
+	)
+
+	err := s.repo.DeleteTodo(todoId, userId)
+	if err != nil {
+		log.Error("delete todo error", "error", err.Error())
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.New("cannot find this task"), http.StatusBadRequest
+		}
+		return errors.New("delete todo error"), http.StatusInternalServerError
+	}
+	return nil, http.StatusOK
 }

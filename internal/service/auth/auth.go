@@ -105,7 +105,7 @@ func (s *AuthService) GenerateTokens(userId int, role string) (entity.TokensRes,
 	return entity.TokensRes{
 		Access:  access,
 		Refresh: refresh,
-	}, nil, 0
+	}, nil, http.StatusOK
 }
 func (s *AuthService) GenerateAccessToken(userId int, role string) (string, error, int) {
 	const op = "services.user.GenerateAccessToken"
@@ -117,7 +117,7 @@ func (s *AuthService) GenerateAccessToken(userId int, role string) (string, erro
 		log.Error("Generate access token error", "error", err.Error())
 		return "", errors.New("create tokens error"), http.StatusInternalServerError
 	}
-	return access, nil, 0
+	return access, nil, http.StatusOK
 }
 func (s *AuthService) GenerateRefreshToken(userId int, role string) (string, error, int) {
 	const op = "services.user.GenerateRefreshToken"
@@ -129,7 +129,7 @@ func (s *AuthService) GenerateRefreshToken(userId int, role string) (string, err
 		log.Error("Generate refresh token error", "error", err.Error())
 		return "", errors.New("create token error"), http.StatusInternalServerError
 	}
-	return refresh, nil, 0
+	return refresh, nil, http.StatusOK
 }
 
 func generatePasswordHash(password string, salt string) string {

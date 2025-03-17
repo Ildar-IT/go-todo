@@ -10,15 +10,13 @@ import (
 
 type AccessClaims struct {
 	jwt.RegisteredClaims
-	UserId int       `json:"user_id"`
-	Role   string    `json:"role"`
-	Exp    time.Time `json:"exp"`
+	UserId int    `json:"user_id"`
+	Role   string `json:"role"`
 }
 type RefreshClaims struct {
-	UserId int       `json:"user_id"`
-	Role   string    `json:"role"`
-	Exp    time.Time `json:"exp"`
 	jwt.RegisteredClaims
+	UserId int    `json:"user_id"`
+	Role   string `json:"role"`
 }
 
 type Jwt struct {
@@ -38,7 +36,11 @@ func (j *Jwt) GenerateAccessToken(userId int, role string) (string, error) {
 	claims := AccessClaims{
 		UserId: userId,
 		Role:   role,
-		Exp:    time.Now().Add(time.Minute * time.Duration(j.cfg.AccessTTL)),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(
+				time.Now().Add(time.Minute * time.Duration(j.cfg.AccessTTL)),
+			),
+		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
 
@@ -49,7 +51,11 @@ func (j *Jwt) GenerateRefreshToken(userId int, role string) (string, error) {
 	claims := RefreshClaims{
 		UserId: userId,
 		Role:   role,
-		Exp:    time.Now().Add(time.Minute * time.Duration(j.cfg.RefreshTTL)),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(
+				time.Now().Add(time.Minute * time.Duration(j.cfg.RefreshTTL)),
+			),
+		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 

@@ -52,6 +52,13 @@ func (h *TodoHandler) CreateTodo() http.HandlerFunc {
 	}
 }
 
+// @Summary Get a list of todos
+// @Description Get a list of todos
+// @Tags todos
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Todo
+// @Router /todo [get]
 func (h *TodoHandler) GetTodo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//get todo id by params
@@ -74,11 +81,7 @@ func (h *TodoHandler) GetTodo() http.HandlerFunc {
 		handlers.SendJSONResponse(w, status, todo, log)
 	}
 }
-func (h *TodoHandler) DeleteTodo() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		//delete todo id by params
-	}
-}
+
 func (h *TodoHandler) UpdateTodo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -102,10 +105,45 @@ func (h *TodoHandler) UpdateTodo() http.HandlerFunc {
 		handlers.SendJSONResponse(w, status, todo, log)
 	}
 }
-
 func (h *TodoHandler) GetTodos() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//get todos by user id
+		//get todo id by params
+		const op = "handler.todo.GetTodos"
+		log := h.log.With(
+			slog.String("op", op),
+		)
+		claims := r.Context().Value("claims").(*jwtUtils.AccessClaims)
+		todo, err, status := h.services.Todo.GetTodos(claims.UserId)
+		if err != nil {
+			handlers.SendJSONResponse(w, status, handlers.HTTPErrorRes{Message: err.Error()}, log)
+			return
+		}
+		handlers.SendJSONResponse(w, status, todo, log)
+	}
+}
+func (h *TodoHandler) DeleteTodo() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		const op = "handler.todo.DeleteTodo"
+		log := h.log.With(
+			slog.String("op", op),
+		)
+		var todoBody entity.TodoUpdateReq
+
+		idParam := r.URL.Query().Get("id")
+		id, err := strconv.Atoi(idParam)
+		if id == 0 || err != nil {
+			handlers.SendJSONResponse(w, http.StatusBadRequest, handlers.HTTPErrorRes{Message: "Invalid id"}, log)
+		}
+		claims := r.Context().Value("claims").(*jwtUtils.AccessClaims)
+		todoBody.UserId = claims.UserId
+		err, status := h.services.Todo.DeleteTodo(id, claims.UserId)
+		if err != nil {
+			handlers.SendJSONResponse(w, status, handlers.HTTPErrorRes{Message: err.Error()}, log)
+			return
+		}
+		log.Info("Delete todo id:", id)
+		handlers.SendJSONResponse(w, status, id, log)
 	}
 }
 
