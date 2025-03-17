@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-
 	"todo/internal/entity"
 	"todo/internal/lib/handlers"
 	jwtUtils "todo/internal/lib/jwt"
@@ -52,13 +51,6 @@ func (h *TodoHandler) CreateTodo() http.HandlerFunc {
 	}
 }
 
-// @Summary Get a list of todos
-// @Description Get a list of todos
-// @Tags todos
-// @Accept  json
-// @Produce  json
-// @Success 200 {array} Todo
-// @Router /todo [get]
 func (h *TodoHandler) GetTodo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//get todo id by params
@@ -66,10 +58,10 @@ func (h *TodoHandler) GetTodo() http.HandlerFunc {
 		log := h.log.With(
 			slog.String("op", op),
 		)
-		idParam := r.URL.Query().Get("id")
-		id, err := strconv.Atoi(idParam)
+		id, err := strconv.Atoi(r.PathValue("id"))
 		if id == 0 || err != nil {
 			handlers.SendJSONResponse(w, http.StatusBadRequest, handlers.HTTPErrorRes{Message: "Invalid id"}, log)
+			return
 		}
 		claims := r.Context().Value("claims").(*jwtUtils.AccessClaims)
 		todo, err, status := h.services.Todo.GetTodo(id, claims.UserId)
@@ -130,8 +122,7 @@ func (h *TodoHandler) DeleteTodo() http.HandlerFunc {
 		)
 		var todoBody entity.TodoUpdateReq
 
-		idParam := r.URL.Query().Get("id")
-		id, err := strconv.Atoi(idParam)
+		id, err := strconv.Atoi(r.PathValue("id"))
 		if id == 0 || err != nil {
 			handlers.SendJSONResponse(w, http.StatusBadRequest, handlers.HTTPErrorRes{Message: "Invalid id"}, log)
 		}

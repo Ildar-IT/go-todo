@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+	_ "todo/docs"
 	"todo/internal/database/pg"
 	"todo/internal/entity"
 )
@@ -12,6 +13,13 @@ type TodoRepository struct {
 	db *sql.DB
 }
 
+// @Summary Get a list of todos
+// @Description Get a list of todos
+// @Tags todos
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Todo
+// @Router /todos [get]
 func NewTodoRepository(db *sql.DB) *TodoRepository {
 	return &TodoRepository{db: db}
 }

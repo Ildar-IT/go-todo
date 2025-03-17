@@ -8,6 +8,8 @@ import (
 	jwtUtils "todo/internal/lib/jwt"
 	"todo/internal/middleware"
 	"todo/internal/service"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Handler struct {
@@ -29,15 +31,18 @@ func NewHandler(log *slog.Logger, services *service.Service, jwt *jwtUtils.Jwt) 
 func (h *Handler) InitRoutes() *http.ServeMux {
 
 	router := http.NewServeMux()
+	router.HandleFunc("GET /swagger/*", httpSwagger.WrapHandler)
 	router.HandleFunc("POST /todo", middleware.AuthMiddleware(h.todoHandler.CreateTodo(), h.jwt, h.log))
-	router.HandleFunc("GET /todo", middleware.AuthMiddleware(h.todoHandler.GetTodo(), h.jwt, h.log))
+	router.HandleFunc("GET /todo/{id}", middleware.AuthMiddleware(h.todoHandler.GetTodo(), h.jwt, h.log))
 	router.HandleFunc("PATCH /todo", middleware.AuthMiddleware(h.todoHandler.UpdateTodo(), h.jwt, h.log))
-	router.HandleFunc("DELETE /todo", middleware.AuthMiddleware(h.todoHandler.DeleteTodo(), h.jwt, h.log))
+	router.HandleFunc("DELETE /todo/{id}", middleware.AuthMiddleware(h.todoHandler.DeleteTodo(), h.jwt, h.log))
 
 	router.HandleFunc("GET /todos", middleware.AuthMiddleware(h.todoHandler.GetTodos(), h.jwt, h.log))
 
 	router.HandleFunc("POST /auth/login", h.authHandler.Login())
+
 	router.HandleFunc("POST /auth/register", h.authHandler.Register())
 	router.HandleFunc("POST /auth/access", middleware.RefreshTokenMiddleware(h.authHandler.UpdateAccessToken(), h.jwt, h.log))
+
 	return router
 }

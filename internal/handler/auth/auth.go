@@ -3,6 +3,7 @@ package authHandler
 import (
 	"log/slog"
 	"net/http"
+	_ "todo/docs"
 	"todo/internal/entity"
 	"todo/internal/lib/handlers"
 	jwtUtils "todo/internal/lib/jwt"
@@ -18,6 +19,16 @@ func NewAuthHandler(log *slog.Logger, services *service.Service) *AuthHandler {
 	return &AuthHandler{log: log, services: services}
 }
 
+// @Summary Auth user
+// @Description Auth user
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param   todo body todoHandler.TodoRequest true "Todo object that needs to be added"
+// @Success 200 {object} todoHandler.TodoResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /todo [post]
 func (h *AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.user.login"
