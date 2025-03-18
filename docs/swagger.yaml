@@ -1,9 +1,389 @@
 basePath: /
+definitions:
+  entity.TodoCreateReq:
+    properties:
+      completed:
+        description: |-
+          Статус выполнения задачи
+          required: false
+          example: false
+        type: boolean
+      description:
+        description: |-
+          Описание задачи
+          required: true
+          example: Купить молоко в магазине на углу
+        type: string
+      title:
+        description: |-
+          Название задачи
+          required: true
+          example: Купить молоко
+        type: string
+    type: object
+  entity.TodoCreateRes:
+    properties:
+      id:
+        type: integer
+    type: object
+  entity.TodoGetRes:
+    properties:
+      completed:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+    type: object
+  entity.TodoUpdateReq:
+    properties:
+      completed:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  entity.TodoUpdateRes:
+    properties:
+      completed:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+    type: object
+  entity.TokenAccessRes:
+    properties:
+      access:
+        description: |-
+          Токен доступа
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  entity.TokensRes:
+    properties:
+      access:
+        description: |-
+          Токен доступа
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      refresh:
+        description: |-
+          Токен обновления
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  entity.UserLoginReq:
+    properties:
+      email:
+        description: |-
+          Email пользователя
+          required: true
+          example: user@example.com
+        type: string
+      password:
+        description: |-
+          Пароль пользователя
+          required: true
+          example: password123
+        type: string
+    type: object
+  entity.UserRegisterReq:
+    properties:
+      email:
+        description: |-
+          Email пользователя
+          required: true
+          example: user@example.com
+        type: string
+      name:
+        description: |-
+          Имя пользователя
+          required: true
+          example: JohnDoe
+        type: string
+      password:
+        description: |-
+          Пароль пользователя
+          required: true
+          example: password123
+        type: string
+    type: object
+  handlers.HTTPErrorRes:
+    properties:
+      message:
+        type: string
+    type: object
 host: localhost:3000
 info:
   contact: {}
   description: This is a sample todo app.
   title: Todo App API
   version: "1.0"
-paths: {}
+paths:
+  /auth/access:
+    post:
+      consumes:
+      - application/json
+      description: Обновляет токен доступа с использованием токена обновления
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.TokenAccessRes'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+      security:
+      - RefreshTokenAuth: []
+      - ApiKeyAuth: []
+      summary: Обновление токена доступа
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Выполняет вход пользователя и возвращает токены доступа и обновления
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UserLoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.TokensRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+      summary: Вход пользователя
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрирует нового пользователя и возвращает токены доступа и
+        обновления
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UserRegisterReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.TokensRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+      summary: Регистрация пользователя
+      tags:
+      - auth
+  /todo:
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет задачу по ID для текущего пользователя
+      parameters:
+      - description: Данные для обновления задачи
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/entity.TodoUpdateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.TodoUpdateRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+      security:
+      - AccessTokenAuth: []
+      summary: Обновить задачу
+      tags:
+      - todo
+    post:
+      consumes:
+      - application/json
+      description: Создать новую задачу для текущего пользователя
+      parameters:
+      - description: Данные для создания задачи
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/entity.TodoCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.TodoCreateRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+      security:
+      - AccessTokenAuth: []
+      summary: Создать задачу
+      tags:
+      - todo
+  /todo/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет задачу по ID для текущего пользователя
+      parameters:
+      - description: ID задачи
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+      security:
+      - AccessTokenAuth: []
+      summary: Удалить задачу
+      tags:
+      - todo
+    get:
+      consumes:
+      - application/json
+      description: Получить задачу для текущего пользователя по id задачи
+      parameters:
+      - description: Данные для создания задачи
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/entity.TodoCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.TodoCreateRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+      security:
+      - AccessTokenAuth: []
+      summary: Получить задачу
+      tags:
+      - todo
+  /todos:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список задач для текущего пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.TodoGetRes'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.HTTPErrorRes'
+      security:
+      - AccessTokenAuth: []
+      summary: Получить список задач
+      tags:
+      - todo
+securityDefinitions:
+  AccessTokenAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+  RefreshTokenAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

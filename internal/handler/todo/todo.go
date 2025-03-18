@@ -19,6 +19,17 @@ func NewTodoHandler(log *slog.Logger, services *service.Service) *TodoHandler {
 	return &TodoHandler{log: log, services: services}
 }
 
+// @Summary Создать задачу
+// @Description Создать новую задачу для текущего пользователя
+// @Tags todo
+// @Security AccessTokenAuth
+// @Accept  json
+// @Produce  json
+// @Param   todo body entity.TodoCreateReq true "Данные для создания задачи"
+// @Success 200 {object} entity.TodoCreateRes
+// @Failure 400 {object} handlers.HTTPErrorRes
+// @Failure 500 {object} handlers.HTTPErrorRes
+// @Router /todo [post]
 func (h *TodoHandler) CreateTodo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.todo.CreateTodo"
@@ -51,6 +62,17 @@ func (h *TodoHandler) CreateTodo() http.HandlerFunc {
 	}
 }
 
+// @Summary Получить задачу
+// @Description Получить задачу для текущего пользователя по id задачи
+// @Tags todo
+// @Security AccessTokenAuth
+// @Accept  json
+// @Produce  json
+// @Param   todo body entity.TodoCreateReq true "Данные для создания задачи"
+// @Success 200 {object} entity.TodoCreateRes
+// @Failure 400 {object} handlers.HTTPErrorRes
+// @Failure 500 {object} handlers.HTTPErrorRes
+// @Router /todo/{id} [get]
 func (h *TodoHandler) GetTodo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//get todo id by params
@@ -74,6 +96,19 @@ func (h *TodoHandler) GetTodo() http.HandlerFunc {
 	}
 }
 
+// UpdateTodo обновляет задачу
+// @Summary Обновить задачу
+// @Description Обновляет задачу по ID для текущего пользователя
+// @Tags todo
+// @Security AccessTokenAuth
+// @Accept  json
+// @Produce  json
+// @Param   todo body entity.TodoUpdateReq true "Данные для обновления задачи"
+// @Success 200 {object} entity.TodoUpdateRes
+// @Failure 400 {object} handlers.HTTPErrorRes
+// @Failure 404 {object} handlers.HTTPErrorRes
+// @Failure 500 {object} handlers.HTTPErrorRes
+// @Router /todo [patch]
 func (h *TodoHandler) UpdateTodo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -97,6 +132,17 @@ func (h *TodoHandler) UpdateTodo() http.HandlerFunc {
 		handlers.SendJSONResponse(w, status, todo, log)
 	}
 }
+
+// GetTodos возвращает список задач для текущего пользователя
+// @Summary Получить список задач
+// @Description Возвращает список задач для текущего пользователя
+// @Tags todo
+// @Security AccessTokenAuth
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} entity.TodoGetRes
+// @Failure 500 {object} handlers.HTTPErrorRes
+// @Router /todos [get]
 func (h *TodoHandler) GetTodos() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//get todo id by params
@@ -113,6 +159,20 @@ func (h *TodoHandler) GetTodos() http.HandlerFunc {
 		handlers.SendJSONResponse(w, status, todo, log)
 	}
 }
+
+// DeleteTodo удаляет задачу по ID
+// @Summary Удалить задачу
+// @Description Удаляет задачу по ID для текущего пользователя
+// @Tags todo
+// @Security AccessTokenAuth
+// @Accept  json
+// @Produce  json
+// @Param   id path int true "ID задачи"
+// @Success 200 {object} int
+// @Failure 400 {object} handlers.HTTPErrorRes
+// @Failure 404 {object} handlers.HTTPErrorRes
+// @Failure 500 {object} handlers.HTTPErrorRes
+// @Router /todo/{id} [delete]
 func (h *TodoHandler) DeleteTodo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -137,24 +197,3 @@ func (h *TodoHandler) DeleteTodo() http.HandlerFunc {
 		handlers.SendJSONResponse(w, status, id, log)
 	}
 }
-
-// func (s *TodoHandler) GetCart() http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-
-// 		var todo TodoCreateRequest
-
-// 		if err := json.NewDecoder(r.Body).Decode(&todo); err != nil {
-// 			http.Error(w, err.Error(), http.StatusBadRequest)
-// 			return
-// 		}
-
-// 		err := s.service.CreateTodo(todo)
-
-// 		// w.Header().Set("Content-Type", "text")
-// 		// w.WriteHeader(200)
-// 		// w.Write([]byte("На получи 1"))
-// 		// w.Write([]byte("На получи 2"))
-// 		// w.Write([]byte("На получи 3"))
-// 		//json.NewEncoder(w).Encode()
-// 	}
-// }

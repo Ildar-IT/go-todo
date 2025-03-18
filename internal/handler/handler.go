@@ -31,7 +31,8 @@ func NewHandler(log *slog.Logger, services *service.Service, jwt *jwtUtils.Jwt) 
 func (h *Handler) InitRoutes() *http.ServeMux {
 
 	router := http.NewServeMux()
-	router.HandleFunc("GET /swagger/*", httpSwagger.WrapHandler)
+	router.HandleFunc("GET /swagger/", httpSwagger.WrapHandler)
+
 	router.HandleFunc("POST /todo", middleware.AuthMiddleware(h.todoHandler.CreateTodo(), h.jwt, h.log))
 	router.HandleFunc("GET /todo/{id}", middleware.AuthMiddleware(h.todoHandler.GetTodo(), h.jwt, h.log))
 	router.HandleFunc("PATCH /todo", middleware.AuthMiddleware(h.todoHandler.UpdateTodo(), h.jwt, h.log))

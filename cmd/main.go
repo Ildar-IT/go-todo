@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	_ "todo/docs"
+
 	"todo/internal/config"
 	"todo/internal/config/logger"
 	"todo/internal/database/pg"
@@ -19,6 +19,15 @@ import (
 // @description This is a sample todo app.
 // @host localhost:3000
 // @BasePath /
+
+// @securityDefinitions.apikey AccessTokenAuth
+// @in header
+// @name Authorization
+
+// @securityDefinitions.apikey RefreshTokenAuth
+// @in header
+// @name Authorization
+
 func main() {
 	//load config
 	cfg := config.LoadConfig()

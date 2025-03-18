@@ -19,16 +19,18 @@ func NewAuthHandler(log *slog.Logger, services *service.Service) *AuthHandler {
 	return &AuthHandler{log: log, services: services}
 }
 
-// @Summary Auth user
-// @Description Auth user
+// Login выполняет вход пользователя
+// @Summary Вход пользователя
+// @Description Выполняет вход пользователя и возвращает токены доступа и обновления
 // @Tags auth
 // @Accept  json
 // @Produce  json
-// @Param   todo body todoHandler.TodoRequest true "Todo object that needs to be added"
-// @Success 200 {object} todoHandler.TodoResponse
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /todo [post]
+// @Param   credentials body entity.UserLoginReq true "Данные для входа"
+// @Success 200 {object} entity.TokensRes
+// @Failure 400 {object} handlers.HTTPErrorRes
+// @Failure 401 {object} handlers.HTTPErrorRes
+// @Failure 500 {object} handlers.HTTPErrorRes
+// @Router /auth/login [post]
 func (h *AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.user.login"
@@ -51,6 +53,17 @@ func (h *AuthHandler) Login() http.HandlerFunc {
 	}
 }
 
+// Register регистрирует нового пользователя
+// @Summary Регистрация пользователя
+// @Description Регистрирует нового пользователя и возвращает токены доступа и обновления
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param   user body entity.UserRegisterReq true "Данные для регистрации"
+// @Success 200 {object} entity.TokensRes
+// @Failure 400 {object} handlers.HTTPErrorRes
+// @Failure 500 {object} handlers.HTTPErrorRes
+// @Router /auth/register [post]
 func (h *AuthHandler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.user.register"
@@ -73,6 +86,18 @@ func (h *AuthHandler) Register() http.HandlerFunc {
 	}
 }
 
+// UpdateAccessToken обновляет токен доступа
+// @Summary Обновление токена доступа
+// @Description Обновляет токен доступа с использованием токена обновления
+// @Tags auth
+// @Security RefreshTokenAuth
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} entity.TokenAccessRes
+// @Failure 401 {object} handlers.HTTPErrorRes
+// @Failure 500 {object} handlers.HTTPErrorRes
+// @Security ApiKeyAuth
+// @Router /auth/access [post]
 func (h *AuthHandler) UpdateAccessToken() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handler.user.updateTokens"

@@ -2,6 +2,8 @@ package entity
 
 import "time"
 
+// User представляет собой модель пользователя
+// swagger:model User
 type User struct {
 	Id            int
 	Username      string
@@ -11,21 +13,51 @@ type User struct {
 	Updated_at    time.Time
 }
 
+// UserLoginReq представляет запрос на вход пользователя
+// swagger:model UserLoginReq
 type UserLoginReq struct {
-	Email    string `json:"email"`
+	// Email пользователя
+	// required: true
+	// example: user@example.com
+	Email string `json:"email"`
+	// Пароль пользователя
+	// required: true
+	// example: password123
 	Password string `json:"password"`
 }
 
+// UserRegisterReq представляет запрос на регистрацию пользователя
+// swagger:model UserRegisterReq
 type UserRegisterReq struct {
+	// Имя пользователя
+	// required: true
+	// example: JohnDoe
 	Username string `json:"name"`
-	Email    string `json:"email"`
+	// Email пользователя
+	// required: true
+	// example: user@example.com
+	Email string `json:"email"`
+	// Пароль пользователя
+	// required: true
+	// example: password123
 	Password string `json:"password"`
 }
 
+// TokensRes представляет ответ с токенами доступа и обновления
+// swagger:model TokensRes
 type TokensRes struct {
-	Access  string `json:"access"`
+	// Токен доступа
+	// example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+	Access string `json:"access"`
+	// Токен обновления
+	// example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 	Refresh string `json:"refresh"`
 }
+
+// TokenAccessRes представляет ответ с токеном доступа
+// swagger:model TokenAccessRes
 type TokenAccessRes struct {
+	// Токен доступа
+	// example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 	Access string `json:"access"`
 }
