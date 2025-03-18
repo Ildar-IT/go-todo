@@ -20,11 +20,11 @@ type TodoCreateReq struct {
 	// Название задачи
 	// required: true
 	// example: Купить молоко
-	Title string `json:"title"`
+	Title string `json:"title" validate:"required,min=6,max=25"`
 	// Описание задачи
 	// required: true
 	// example: Купить молоко в магазине на углу
-	Description string `json:"description"`
+	Description string `json:"description" validate:"required,max=360"`
 	// Статус выполнения задачи
 	// required: false
 	// example: false
@@ -49,10 +49,10 @@ type TodoGetRes struct {
 // TodoUpdateReq представляет запрос на обновление задачи
 // swagger:model TodoUpdateReq
 type TodoUpdateReq struct {
-	UserId      int    `json:"user_id"`
-	Id          int    `json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
+	UserId      int    `json:"user_id" validate:"required"`
+	Id          int    `json:"id"  validate:"required"`
+	Title       string `json:"title" validate:"required,min=6,max=25"`
+	Description string `json:"description" validate:"required,max=360"`
 	Completed   bool   `json:"completed"`
 }
 

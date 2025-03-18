@@ -19,11 +19,11 @@ type UserLoginReq struct {
 	// Email пользователя
 	// required: true
 	// example: user@example.com
-	Email string `json:"email"`
+	Email string `json:"email" validate:"required,email"`
 	// Пароль пользователя
 	// required: true
 	// example: password123
-	Password string `json:"password"`
+	Password string `json:"password" validate:"required,min=6"`
 }
 
 // UserRegisterReq представляет запрос на регистрацию пользователя
@@ -32,15 +32,15 @@ type UserRegisterReq struct {
 	// Имя пользователя
 	// required: true
 	// example: JohnDoe
-	Username string `json:"name"`
+	Username string `json:"name" validate:"required,max=32,min=2"`
 	// Email пользователя
 	// required: true
 	// example: user@example.com
-	Email string `json:"email"`
+	Email string `json:"email" validate:"required,email"`
 	// Пароль пользователя
 	// required: true
 	// example: password123
-	Password string `json:"password"`
+	Password string `json:"password" validate:"required,min=6"`
 }
 
 // TokensRes представляет ответ с токенами доступа и обновления

@@ -8,15 +8,18 @@ import (
 	"todo/internal/lib/handlers"
 	jwtUtils "todo/internal/lib/jwt"
 	"todo/internal/service"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type TodoHandler struct {
-	log      *slog.Logger
-	services *service.Service
+	log       *slog.Logger
+	services  *service.Service
+	validator *validator.Validate
 }
 
-func NewTodoHandler(log *slog.Logger, services *service.Service) *TodoHandler {
-	return &TodoHandler{log: log, services: services}
+func NewTodoHandler(log *slog.Logger, services *service.Service, validator *validator.Validate) *TodoHandler {
+	return &TodoHandler{log: log, services: services, validator: validator}
 }
 
 // @Summary Создать задачу
@@ -42,6 +45,12 @@ func (h *TodoHandler) CreateTodo() http.HandlerFunc {
 		var todo entity.TodoCreateReq
 
 		if err := handlers.DecodeJSONRequest(w, r, &todo, log); err != nil {
+			return
+		}
+
+		err := h.validator.Struct(todo)
+		if err != nil {
+			handlers.SendJSONResponse(w, http.StatusBadRequest, err.Error(), log)
 			return
 		}
 

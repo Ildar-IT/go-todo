@@ -8,15 +8,18 @@ import (
 	"todo/internal/lib/handlers"
 	jwtUtils "todo/internal/lib/jwt"
 	"todo/internal/service"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type AuthHandler struct {
-	log      *slog.Logger
-	services *service.Service
+	log       *slog.Logger
+	services  *service.Service
+	validator *validator.Validate
 }
 
-func NewAuthHandler(log *slog.Logger, services *service.Service) *AuthHandler {
-	return &AuthHandler{log: log, services: services}
+func NewAuthHandler(log *slog.Logger, services *service.Service, validator *validator.Validate) *AuthHandler {
+	return &AuthHandler{log: log, services: services, validator: validator}
 }
 
 // Login выполняет вход пользователя
@@ -39,6 +42,11 @@ func (h *AuthHandler) Login() http.HandlerFunc {
 		)
 		var user entity.UserLoginReq
 		if err := handlers.DecodeJSONRequest(w, r, &user, log); err != nil {
+			return
+		}
+		err := h.validator.Struct(user)
+		if err != nil {
+			handlers.SendJSONResponse(w, http.StatusBadRequest, err.Error(), log)
 			return
 		}
 
@@ -70,10 +78,18 @@ func (h *AuthHandler) Register() http.HandlerFunc {
 		log := h.log.With(
 			slog.String("op", op),
 		)
+
 		var user entity.UserRegisterReq
 		if err := handlers.DecodeJSONRequest(w, r, &user, log); err != nil {
 			return
 		}
+
+		err := h.validator.Struct(user)
+		if err != nil {
+			handlers.SendJSONResponse(w, http.StatusBadRequest, err.Error(), log)
+			return
+		}
+
 		resp, err, status := h.services.Auth.Register(&user)
 
 		if err != nil {

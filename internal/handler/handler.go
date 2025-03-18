@@ -9,6 +9,7 @@ import (
 	"todo/internal/middleware"
 	"todo/internal/service"
 
+	"github.com/go-playground/validator/v10"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -20,9 +21,11 @@ type Handler struct {
 }
 
 func NewHandler(log *slog.Logger, services *service.Service, jwt *jwtUtils.Jwt) *Handler {
+
+	validator := validator.New()
 	return &Handler{
-		todoHandler: todoHandler.NewTodoHandler(log, services),
-		authHandler: authHandler.NewAuthHandler(log, services),
+		todoHandler: todoHandler.NewTodoHandler(log, services, validator),
+		authHandler: authHandler.NewAuthHandler(log, services, validator),
 		jwt:         jwt,
 		log:         log,
 	}
