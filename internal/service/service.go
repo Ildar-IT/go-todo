@@ -7,6 +7,7 @@ import (
 	"todo/internal/repository"
 	authService "todo/internal/service/auth"
 	todoService "todo/internal/service/todo"
+	userService "todo/internal/service/user"
 )
 
 type Todo interface {
@@ -25,14 +26,20 @@ type Auth interface {
 	GenerateRefreshToken(userId int, role string) (string, error, int)
 }
 
+type User interface {
+	GetAllUsers() ([]entity.User, error, int)
+}
+
 type Service struct {
 	Todo
 	Auth
+	User
 }
 
 func NewService(log *slog.Logger, repo *repository.Repository, jwt *jwtUtils.Jwt, salt string) *Service {
 	return &Service{
 		Todo: todoService.NewTodoService(log, repo.Todo),
 		Auth: authService.NewAuthService(log, repo.User, repo.Role, jwt, salt),
+		User: userService.NewUserService(log, repo.User),
 	}
 }

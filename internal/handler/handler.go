@@ -5,6 +5,7 @@ import (
 	"net/http"
 	authHandler "todo/internal/handler/auth"
 	todoHandler "todo/internal/handler/todo"
+	userHandler "todo/internal/handler/user"
 	jwtUtils "todo/internal/lib/jwt"
 	"todo/internal/middleware"
 	"todo/internal/service"
@@ -16,6 +17,7 @@ import (
 type Handler struct {
 	todoHandler *todoHandler.TodoHandler
 	authHandler *authHandler.AuthHandler
+	userHandler *userHandler.UserHandler
 	jwt         *jwtUtils.Jwt
 	log         *slog.Logger
 }
@@ -26,6 +28,7 @@ func NewHandler(log *slog.Logger, services *service.Service, jwt *jwtUtils.Jwt) 
 	return &Handler{
 		todoHandler: todoHandler.NewTodoHandler(log, services, validator),
 		authHandler: authHandler.NewAuthHandler(log, services, validator),
+		userHandler: userHandler.NewUserHandler(log, services),
 		jwt:         jwt,
 		log:         log,
 	}
@@ -48,5 +51,6 @@ func (h *Handler) InitRoutes() *http.ServeMux {
 	router.HandleFunc("POST /auth/register", h.authHandler.Register())
 	router.HandleFunc("POST /auth/access", middleware.RefreshTokenMiddleware(h.authHandler.UpdateAccessToken(), h.jwt, h.log))
 
+	router.HandleFunc("GET /users", middleware.AuthMiddleware(middleware.RoleCheckMiddleware(h.userHandler.GetAllUsers(), h.log), h.jwt, h.log))
 	return router
 }

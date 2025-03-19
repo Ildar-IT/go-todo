@@ -10,8 +10,6 @@ import (
 	"todo/internal/entity"
 	jwtUtils "todo/internal/lib/jwt"
 	"todo/internal/repository"
-
-	"github.com/lib/pq"
 )
 
 type AuthService struct {
@@ -34,7 +32,7 @@ func NewAuthService(log *slog.Logger, repoUser repository.User, repoRole reposit
 }
 
 func (s *AuthService) Login(user *entity.UserLoginReq) (entity.TokensRes, error, int) {
-	const op = "services.user.login"
+	const op = "services.auth.login"
 	log := s.log.With(
 		slog.String("op", op),
 	)
@@ -61,7 +59,7 @@ func (s *AuthService) Login(user *entity.UserLoginReq) (entity.TokensRes, error,
 }
 
 func (s *AuthService) Register(user *entity.UserRegisterReq) (entity.TokensRes, error, int) {
-	const op = "services.user.register"
+	const op = "services.auth.register"
 	log := s.log.With(
 		slog.String("op", op),
 	)
@@ -74,8 +72,7 @@ func (s *AuthService) Register(user *entity.UserRegisterReq) (entity.TokensRes, 
 	userId, err := s.repoUser.Create(&userEntity)
 	if err != nil {
 		log.Error("Repo user create error", "error", err.Error())
-		pqErr := err.(*pq.Error).Code
-		if pqErr == "23505" {
+		if errors.Is(err, sql.ErrNoRows) {
 			return entity.TokensRes{}, errors.New("user already exists"), http.StatusBadRequest
 		}
 		return entity.TokensRes{}, errors.New("user register error"), http.StatusInternalServerError
@@ -90,10 +87,6 @@ func (s *AuthService) Register(user *entity.UserRegisterReq) (entity.TokensRes, 
 }
 
 func (s *AuthService) GenerateTokens(userId int, role string) (entity.TokensRes, error, int) {
-	// const op = "services.user.GenerateTokens"
-	// log := s.log.With(
-	// 	slog.String("op", op),
-	// )
 	access, err, status := s.GenerateAccessToken(userId, role)
 	if err != nil {
 		return entity.TokensRes{}, err, status
@@ -108,7 +101,7 @@ func (s *AuthService) GenerateTokens(userId int, role string) (entity.TokensRes,
 	}, nil, http.StatusOK
 }
 func (s *AuthService) GenerateAccessToken(userId int, role string) (string, error, int) {
-	const op = "services.user.GenerateAccessToken"
+	const op = "services.auth.GenerateAccessToken"
 	log := s.log.With(
 		slog.String("op", op),
 	)
@@ -120,7 +113,7 @@ func (s *AuthService) GenerateAccessToken(userId int, role string) (string, erro
 	return access, nil, http.StatusOK
 }
 func (s *AuthService) GenerateRefreshToken(userId int, role string) (string, error, int) {
-	const op = "services.user.GenerateRefreshToken"
+	const op = "services.auth.GenerateRefreshToken"
 	log := s.log.With(
 		slog.String("op", op),
 	)

@@ -56,7 +56,6 @@ func (h *AuthHandler) Login() http.HandlerFunc {
 			handlers.SendJSONResponse(w, status, handlers.HTTPErrorRes{Message: err.Error()}, log)
 			return
 		}
-		log.Info("Create User:", "tokens", resp)
 		handlers.SendJSONResponse(w, http.StatusOK, resp, log)
 	}
 }
@@ -96,7 +95,6 @@ func (h *AuthHandler) Register() http.HandlerFunc {
 			handlers.SendJSONResponse(w, status, handlers.HTTPErrorRes{Message: err.Error()}, log)
 			return
 		}
-		log.Info("Create user:", "tokens", resp)
 		handlers.SendJSONResponse(w, http.StatusOK, resp, log)
 
 	}

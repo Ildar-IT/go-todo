@@ -55,7 +55,7 @@ func RefreshTokenMiddleware(next http.HandlerFunc, jwt *jwtUtils.Jwt, logger *sl
 		claims, err := jwt.ValidateRefreshToken(authParts[1])
 
 		if err != nil {
-			log.Error(err.Error())
+			log.Error("Token not valid", "error", err.Error())
 			handlers.SendJSONResponse(w, http.StatusUnauthorized, handlers.HTTPErrorRes{Message: "Not valid token"}, log)
 			return
 		}

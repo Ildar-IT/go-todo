@@ -19,6 +19,7 @@ type Todo interface {
 type User interface {
 	Create(user *entity.User) (int, error)
 	GetUserByEmail(email string) (*entity.User, error)
+	GetUsers() ([]entity.User, error)
 }
 
 type Role interface {
