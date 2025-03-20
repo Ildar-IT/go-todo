@@ -20,6 +20,7 @@ type User interface {
 	Create(user *entity.User) (int, error)
 	GetUserByEmail(email string) (*entity.User, error)
 	GetUsers() ([]entity.User, error)
+	GetUsersWithTasksByDate(date string) (map[int]*entity.UserTasks, error)
 }
 
 type Role interface {

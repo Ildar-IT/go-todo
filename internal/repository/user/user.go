@@ -30,7 +30,6 @@ func (r *UserRepository) GetUserByEmail(email string) (*entity.User, error) {
 	err := row.Scan(&result.Id, &result.Username, &result.Email, &result.Password_hash, &result.Created_at, &result.Updated_at)
 
 	return &result, err
-
 }
 
 func (r *UserRepository) GetUsers() ([]entity.User, error) {
@@ -53,6 +52,48 @@ func (r *UserRepository) GetUsers() ([]entity.User, error) {
 	}
 
 	return users, err
+}
+func (r *UserRepository) GetUsersWithTasksByDate(date string) (map[int]*entity.UserTasks, error) {
+
+	query := fmt.Sprintf(
+		`SELECT u.id, u.username, u.email, t.id, t.title, t.description, t.completed FROM %s u 
+		INNER JOIN %s t ON u.id = t.user_id AND date(t.created_at) = date($1)
+		`,
+		pg.UsersTable, pg.TodosTable)
+
+	rows, err := r.db.Query(query, date)
+	if err != nil {
+		return nil, err
+	}
+	usersWithTodos := make(map[int]*entity.UserTasks)
+	for rows.Next() {
+		var user entity.User
+		var todo entity.Todo
+
+		err := rows.Scan(&user.Id, &user.Username, &user.Email, &todo.Id, &todo.Title, &todo.Description, &todo.Completed)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, exists := usersWithTodos[user.Id]; !exists {
+			usersWithTodos[user.Id] = &entity.UserTasks{
+				User: entity.User{
+					Id:       user.Id,
+					Username: user.Username,
+					Email:    user.Email,
+				},
+				Todos: []entity.Todo{},
+			}
+		}
+
+		usersWithTodos[user.Id].Todos = append(usersWithTodos[user.Id].Todos, todo)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return usersWithTodos, err
 }
 
 // func (r *TodoRepository) GetTodos(userId int) ([]entity.TodoGetRes, error) {

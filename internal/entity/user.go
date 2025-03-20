@@ -12,6 +12,10 @@ type User struct {
 	Created_at    time.Time
 	Updated_at    time.Time
 }
+type UserTasks struct {
+	User  User
+	Todos []Todo
+}
 
 // UserLoginReq представляет запрос на вход пользователя
 // swagger:model UserLoginReq
