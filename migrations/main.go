@@ -15,7 +15,8 @@ var embedMigrations embed.FS
 
 func main() {
 	// setup database
-	storage, err := pg.New(config.GetDbConnectionStr())
+	cfg := config.LoadConfig()
+	storage, err := pg.New(config.GetDbConnectionStr(cfg.EnvFilePath))
 	if err != nil {
 		panic(err.Error())
 	}
