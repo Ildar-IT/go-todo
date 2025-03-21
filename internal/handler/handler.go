@@ -38,19 +38,25 @@ func (h *Handler) InitRoutes() *http.ServeMux {
 
 	router := http.NewServeMux()
 	router.HandleFunc("GET /swagger/", httpSwagger.WrapHandler)
+	authMiddleware := middleware.ChainMiddleware(
+		middleware.AuthMiddleware(h.jwt, h.log),
+	)
+	authAndRoleMw := middleware.ChainMiddleware(
+		middleware.AuthMiddleware(h.jwt, h.log),
+		middleware.RoleCheckMiddleware(h.log),
+	)
+	router.HandleFunc("POST /todo", authMiddleware(h.todoHandler.CreateTodo()))
+	router.HandleFunc("GET /todo/{id}", authMiddleware(h.todoHandler.GetTodo()))
+	router.HandleFunc("PATCH /todo", authMiddleware(h.todoHandler.UpdateTodo()))
+	router.HandleFunc("DELETE /todo/{id}", authMiddleware(h.todoHandler.DeleteTodo()))
 
-	router.HandleFunc("POST /todo", middleware.AuthMiddleware(h.todoHandler.CreateTodo(), h.jwt, h.log))
-	router.HandleFunc("GET /todo/{id}", middleware.AuthMiddleware(h.todoHandler.GetTodo(), h.jwt, h.log))
-	router.HandleFunc("PATCH /todo", middleware.AuthMiddleware(h.todoHandler.UpdateTodo(), h.jwt, h.log))
-	router.HandleFunc("DELETE /todo/{id}", middleware.AuthMiddleware(h.todoHandler.DeleteTodo(), h.jwt, h.log))
-
-	router.HandleFunc("GET /todos", middleware.AuthMiddleware(h.todoHandler.GetTodos(), h.jwt, h.log))
+	router.HandleFunc("GET /todos", authMiddleware(h.todoHandler.GetTodos()))
 
 	router.HandleFunc("POST /auth/login", h.authHandler.Login())
 
 	router.HandleFunc("POST /auth/register", h.authHandler.Register())
-	router.HandleFunc("POST /auth/access", middleware.RefreshTokenMiddleware(h.authHandler.UpdateAccessToken(), h.jwt, h.log))
+	router.HandleFunc("POST /auth/access", middleware.ChainMiddleware(middleware.RefreshTokenMiddleware(h.jwt, h.log))(h.authHandler.UpdateAccessToken()))
 
-	router.HandleFunc("GET /users", middleware.AuthMiddleware(middleware.RoleCheckMiddleware(h.userHandler.GetAllUsers(), h.log), h.jwt, h.log))
+	router.HandleFunc("GET /users", authAndRoleMw(h.userHandler.GetAllUsers()))
 	return router
 }
