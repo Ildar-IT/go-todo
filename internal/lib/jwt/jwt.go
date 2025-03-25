@@ -28,11 +28,7 @@ func New(cfg *config.JwtConfig) *Jwt {
 }
 
 func (j *Jwt) GenerateAccessToken(userId int, role string) (string, error) {
-	// claims := jwt.MapClaims{
-	// 	"user_id": userId,
-	// 	"role":    role,
-	// 	"exp":     time.Now().Add(time.Minute * time.Duration(j.cfg.AccessTTL)).Unix(),
-	// }
+
 	claims := AccessClaims{
 		UserId: userId,
 		Role:   role,

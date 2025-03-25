@@ -95,25 +95,3 @@ func (r *UserRepository) GetUsersWithTasksByDate(date string) (map[int]*entity.U
 
 	return usersWithTodos, err
 }
-
-// func (r *TodoRepository) GetTodos(userId int) ([]entity.TodoGetRes, error) {
-
-// 	query := fmt.Sprintf("SELECT id, title, description, completed FROM %s t WHERE t.user_id = $1", pg.TodosTable)
-// 	rows, err := r.db.Query(query, userId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
-// 	var todos []entity.TodoGetRes
-// 	for rows.Next() {
-// 		var todo entity.TodoGetRes
-// 		if err := rows.Scan(&todo.Id, &todo.Title, &todo.Description, &todo.Completed); err != nil {
-// 			return nil, err
-// 		}
-// 		todos = append(todos, todo)
-// 	}
-// 	if err = rows.Err(); err != nil {
-// 		return nil, err
-// 	}
-// 	return todos, err
-// }

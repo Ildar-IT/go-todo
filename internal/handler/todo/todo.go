@@ -66,7 +66,6 @@ func (h *TodoHandler) CreateTodo() http.HandlerFunc {
 			return
 		}
 
-		log.Info("Create todo id:", id)
 		handlers.SendJSONResponse(w, status, entity.TodoCreateRes{Id: id}, log)
 	}
 }
@@ -100,7 +99,6 @@ func (h *TodoHandler) GetTodo() http.HandlerFunc {
 			handlers.SendJSONResponse(w, status, handlers.HTTPErrorRes{Message: err.Error()}, log)
 			return
 		}
-		log.Info("GetTodo id:", todo.Id)
 		handlers.SendJSONResponse(w, status, todo, log)
 	}
 }
@@ -137,7 +135,6 @@ func (h *TodoHandler) UpdateTodo() http.HandlerFunc {
 			handlers.SendJSONResponse(w, status, handlers.HTTPErrorRes{Message: err.Error()}, log)
 			return
 		}
-		log.Info("UpdateTodo id:", todo.Id)
 		handlers.SendJSONResponse(w, status, todo, log)
 	}
 }
@@ -202,7 +199,6 @@ func (h *TodoHandler) DeleteTodo() http.HandlerFunc {
 			handlers.SendJSONResponse(w, status, handlers.HTTPErrorRes{Message: err.Error()}, log)
 			return
 		}
-		log.Info("Delete todo id:", id)
 		handlers.SendJSONResponse(w, status, id, log)
 	}
 }

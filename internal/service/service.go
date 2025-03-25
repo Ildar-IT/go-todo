@@ -10,6 +10,8 @@ import (
 	userService "todo/internal/service/user"
 )
 
+//go:generate mockgen -source=service.go -destination=mocks/mock.go
+
 type Todo interface {
 	CreateTodo(todo *entity.Todo) (int, error, int)
 	GetTodo(todoId int, userId int) (*entity.TodoGetRes, error, int)
