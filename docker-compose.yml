@@ -1,12 +1,23 @@
 services:
+  todo-app:
+    build: ./
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
+      - "8080:8080"
+    depends_on:
+      - postgres
+    command: bash -c "./wait-for-postgres.sh postgres && ./migrations/main && ./main "
   postgres:
     container_name: postgres_todo
     image: postgres:16.4
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: my_pass
+      POSTGRES_DB: todo
       PGDATA: /data/postgres
     volumes:
-      - ./postgres-data:/data/postgres
+      - ./pg-data:/data/postgres
     ports:
       - "5432:5432"

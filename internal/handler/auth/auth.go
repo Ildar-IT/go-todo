@@ -28,7 +28,7 @@ func NewAuthHandler(log *slog.Logger, services *service.Service, validator *vali
 // @Tags auth
 // @Accept  json
 // @Produce  json
-// @Param   credentials body entity.UserLoginReq true "Данные для входа"
+// @Param user body entity.UserLoginReq true "Данные для входа"
 // @Success 200 {object} entity.TokensRes
 // @Failure 400 {object} handlers.HTTPErrorRes
 // @Failure 401 {object} handlers.HTTPErrorRes
@@ -66,7 +66,7 @@ func (h *AuthHandler) Login() http.HandlerFunc {
 // @Tags auth
 // @Accept  json
 // @Produce  json
-// @Param   user body entity.UserRegisterReq true "Данные для регистрации"
+// @Param   auth body entity.UserRegisterReq true "Данные для регистрации"
 // @Success 200 {object} entity.TokensRes
 // @Failure 400 {object} handlers.HTTPErrorRes
 // @Failure 500 {object} handlers.HTTPErrorRes

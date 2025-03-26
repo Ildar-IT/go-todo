@@ -13,13 +13,19 @@ definitions:
           Описание задачи
           required: true
           example: Купить молоко в магазине на углу
+        maxLength: 360
         type: string
       title:
         description: |-
           Название задачи
           required: true
           example: Купить молоко
+        maxLength: 25
+        minLength: 6
         type: string
+    required:
+    - description
+    - title
     type: object
   entity.TodoCreateRes:
     properties:
@@ -42,13 +48,21 @@ definitions:
       completed:
         type: boolean
       description:
+        maxLength: 360
         type: string
       id:
         type: integer
       title:
+        maxLength: 25
+        minLength: 6
         type: string
       user_id:
         type: integer
+    required:
+    - description
+    - id
+    - title
+    - user_id
     type: object
   entity.TodoUpdateRes:
     properties:
@@ -82,6 +96,21 @@ definitions:
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         type: string
     type: object
+  entity.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      password_hash:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
   entity.UserLoginReq:
     properties:
       email:
@@ -95,7 +124,11 @@ definitions:
           Пароль пользователя
           required: true
           example: password123
+        minLength: 6
         type: string
+    required:
+    - email
+    - password
     type: object
   entity.UserRegisterReq:
     properties:
@@ -110,13 +143,20 @@ definitions:
           Имя пользователя
           required: true
           example: JohnDoe
+        maxLength: 32
+        minLength: 2
         type: string
       password:
         description: |-
           Пароль пользователя
           required: true
           example: password123
+        minLength: 6
         type: string
+    required:
+    - email
+    - name
+    - password
     type: object
   handlers.HTTPErrorRes:
     properties:
@@ -160,21 +200,16 @@ paths:
     post:
       consumes:
       - application/json
-      description: Выполняет вход пользователя и возвращает токены доступа и обновления
-      parameters:
-      - description: Данные для входа
-        in: body
-        name: credentials
-        required: true
-        schema:
-          $ref: '#/definitions/entity.UserLoginReq'
+      description: Получение всех пользователей только для админ роли
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.TokensRes'
+            items:
+              $ref: '#/definitions/entity.User'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -187,9 +222,11 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.HTTPErrorRes'
-      summary: Вход пользователя
+      security:
+      - AccessTokenAuth: []
+      summary: Получение всех пользователей
       tags:
-      - auth
+      - user
   /auth/register:
     post:
       consumes:
@@ -199,7 +236,7 @@ paths:
       parameters:
       - description: Данные для регистрации
         in: body
-        name: user
+        name: auth
         required: true
         schema:
           $ref: '#/definitions/entity.UserRegisterReq'

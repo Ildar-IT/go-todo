@@ -60,7 +60,12 @@ const docTemplate = `{
         },
         "/auth/login": {
             "post": {
-                "description": "Выполняет вход пользователя и возвращает токены доступа и обновления",
+                "security": [
+                    {
+                        "AccessTokenAuth": []
+                    }
+                ],
+                "description": "Получение всех пользователей только для админ роли",
                 "consumes": [
                     "application/json"
                 ],
@@ -68,25 +73,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "user"
                 ],
-                "summary": "Вход пользователя",
-                "parameters": [
-                    {
-                        "description": "Данные для входа",
-                        "name": "credentials",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/entity.UserLoginReq"
-                        }
-                    }
-                ],
+                "summary": "Получение всех пользователей",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.TokensRes"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.User"
+                            }
                         }
                     },
                     "400": {
@@ -126,7 +123,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Данные для регистрации",
-                        "name": "user",
+                        "name": "auth",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -407,6 +404,10 @@ const docTemplate = `{
     "definitions": {
         "entity.TodoCreateReq": {
             "type": "object",
+            "required": [
+                "description",
+                "title"
+            ],
             "properties": {
                 "completed": {
                     "description": "Статус выполнения задачи\nrequired: false\nexample: false",
@@ -414,11 +415,14 @@ const docTemplate = `{
                 },
                 "description": {
                     "description": "Описание задачи\nrequired: true\nexample: Купить молоко в магазине на углу",
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 360
                 },
                 "title": {
                     "description": "Название задачи\nrequired: true\nexample: Купить молоко",
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 25,
+                    "minLength": 6
                 }
             }
         },
@@ -449,18 +453,27 @@ const docTemplate = `{
         },
         "entity.TodoUpdateReq": {
             "type": "object",
+            "required": [
+                "description",
+                "id",
+                "title",
+                "user_id"
+            ],
             "properties": {
                 "completed": {
                     "type": "boolean"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 360
                 },
                 "id": {
                     "type": "integer"
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 25,
+                    "minLength": 6
                 },
                 "user_id": {
                     "type": "integer"
@@ -506,8 +519,35 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "password_hash": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.UserLoginReq": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "description": "Email пользователя\nrequired: true\nexample: user@example.com",
@@ -515,12 +555,18 @@ const docTemplate = `{
                 },
                 "password": {
                     "description": "Пароль пользователя\nrequired: true\nexample: password123",
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 6
                 }
             }
         },
         "entity.UserRegisterReq": {
             "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "description": "Email пользователя\nrequired: true\nexample: user@example.com",
@@ -528,11 +574,14 @@ const docTemplate = `{
                 },
                 "name": {
                     "description": "Имя пользователя\nrequired: true\nexample: JohnDoe",
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 2
                 },
                 "password": {
                     "description": "Пароль пользователя\nrequired: true\nexample: password123",
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 6
                 }
             }
         },
