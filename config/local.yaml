@@ -1,0 +1,8 @@
+env: "local"
+http:
+  port: 4000
+  timeout: "5s"
+  idletimeout: "60s"
+jwt:
+  accessTTL: 100  
+  refreshTTL: 168  
